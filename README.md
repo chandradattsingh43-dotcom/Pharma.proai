@@ -1,2 +1,1034 @@
-# Pharma.proai
- Basic pharmacy notes ai tool
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medico.GenAI</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f172a;
+  --teal: #14b8a6;
+  --cyan: #22d3ee;
+  --white: #ffffff;
+  --gray: #94a3b8;
+  --border: rgba(20,184,166,0.25);
+  --glass: rgba(20,184,166,0.08);
+  --radius: 18px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: linear-gradient(135deg, #0f172a 0%, #0a1628 50%, #022c22 100%);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: radial-gradient(ellipse at 20% 20%, rgba(20,184,166,0.07) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, rgba(34,211,238,0.05) 0%, transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+nav {
+  position:fixed; top:0; width:100%; z-index:1000;
+  background: rgba(15,23,42,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.nav-logo {
+  font-family:'Orbitron',monospace; font-size:13px; font-weight:900;
+  background: linear-gradient(90deg, var(--teal), var(--cyan));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.nav-logo small {
+  display:block; font-size:8px; color:var(--gray);
+  -webkit-text-fill-color:var(--gray); font-family:'Rajdhani',sans-serif;
+  letter-spacing:2px;
+}
+.nav-tabs { display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; }
+.nav-tabs::-webkit-scrollbar { display:none; }
+.tab-btn {
+  padding:6px 10px; border-radius:20px; border:1px solid transparent;
+  background:transparent; color:var(--gray); font-family:'Rajdhani',sans-serif;
+  font-size:12px; font-weight:600; cursor:pointer; transition:all 0.3s; white-space:nowrap;
+}
+.tab-btn.active, .tab-btn:hover {
+  border-color:var(--teal); color:var(--teal);
+  background: rgba(20,184,166,0.1);
+}
+.page { display:none; padding: 76px 16px 30px; position:relative; z-index:1; min-height:100vh; }
+.page.active { display:block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(15px);
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.page-title {
+  font-family:'Orbitron',monospace; font-size:17px; font-weight:700;
+  background: linear-gradient(90deg, var(--teal), var(--cyan));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:2px;
+}
+.by-brand { color:var(--teal); font-size:10px; opacity:0.7; margin-bottom:2px; }
+.page-sub { color:var(--gray); font-size:12px; margin-bottom:16px; }
+input, select, textarea {
+  width:100%; padding:11px 14px;
+  background: rgba(10,15,30,0.85);
+  border: 1px solid var(--border);
+  border-radius:12px; color:var(--white);
+  font-family:'Rajdhani',sans-serif; font-size:14px;
+  outline:none; transition:all 0.3s; margin-top:2px;
+}
+input:focus, select:focus, textarea:focus {
+  border-color:var(--teal); box-shadow: 0 0 12px rgba(20,184,166,0.2);
+}
+select option { background:#0f172a; }
+textarea { resize:vertical; min-height:70px; }
+label { color:var(--gray); font-size:12px; display:block; margin-top:12px; margin-bottom:4px; }
+.btn {
+  padding:11px 20px; border-radius:12px; border:none; cursor:pointer;
+  font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700;
+  transition:all 0.3s; letter-spacing:1px; text-transform:uppercase;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--teal), var(--cyan));
+  color:#0f172a; width:100%; margin-top:12px;
+  box-shadow: 0 4px 18px rgba(20,184,166,0.3);
+}
+.btn-primary:hover { transform:translateY(-2px); box-shadow: 0 6px 22px rgba(20,184,166,0.4); }
+.btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.btn-sm {
+  padding:5px 12px; font-size:11px; border-radius:8px;
+  background: rgba(20,184,166,0.12); border:1px solid var(--border);
+  color:var(--teal); cursor:pointer; font-family:'Rajdhani',sans-serif;
+  font-weight:600; transition:all 0.3s;
+}
+.btn-sm:hover { background:rgba(20,184,166,0.22); }
+.btn-outline {
+  background:transparent; border:1px solid var(--border);
+  color:var(--gray); font-size:12px; padding:9px 18px;
+}
+.btn-outline:hover { border-color:var(--teal); color:var(--teal); }
+.badge {
+  display:inline-block; padding:3px 10px; border-radius:20px;
+  font-size:10px; font-weight:700; letter-spacing:1px;
+  background:rgba(20,184,166,0.15); color:var(--teal);
+  border:1px solid rgba(20,184,166,0.3);
+}
+.output-box {
+  background:rgba(8,15,30,0.95); border:1px solid var(--border);
+  border-radius:12px; padding:14px; min-height:80px; max-height:380px;
+  overflow-y:auto; font-size:13px; line-height:1.7; color:var(--white);
+  white-space:pre-wrap; word-break:break-word;
+}
+.output-box::-webkit-scrollbar { width:3px; }
+.output-box::-webkit-scrollbar-thumb { background:var(--teal); border-radius:2px; }
+.inner-tabs { display:flex; gap:5px; flex-wrap:wrap; margin-top:8px; margin-bottom:4px; }
+.inner-tab {
+  padding:5px 12px; border-radius:20px; font-size:11px; font-weight:600;
+  cursor:pointer; transition:all 0.3s; background:transparent;
+  border:1px solid var(--border); color:var(--gray); font-family:'Rajdhani',sans-serif;
+}
+.inner-tab.active { background:rgba(20,184,166,0.15); border-color:var(--teal); color:var(--teal); }
+.limit-bar {
+  display:flex; align-items:center; gap:8px; padding:8px 12px;
+  border-radius:10px; background:rgba(20,184,166,0.07);
+  border:1px solid var(--border); font-size:12px; color:var(--gray); margin-bottom:14px;
+}
+.limit-bar span { color:var(--teal); font-weight:700; }
+.chat-box {
+  height:320px; overflow-y:auto; padding:12px;
+  display:flex; flex-direction:column; gap:8px;
+}
+.chat-box::-webkit-scrollbar { width:3px; }
+.chat-box::-webkit-scrollbar-thumb { background:var(--teal); border-radius:2px; }
+.msg { max-width:82%; padding:10px 13px; border-radius:14px; font-size:13px; line-height:1.6; animation:msgIn 0.3s ease; }
+@keyframes msgIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+.msg.user {
+  align-self:flex-end;
+  background: linear-gradient(135deg, rgba(20,184,166,0.28), rgba(34,211,238,0.18));
+  border:1px solid rgba(20,184,166,0.3);
+}
+.msg.ai { align-self:flex-start; background:rgba(15,25,45,0.95); border:1px solid var(--border); }
+.msg.ai .ai-name { font-size:9px; color:var(--teal); font-weight:700; letter-spacing:1px; display:block; margin-bottom:3px; }
+.chat-input-row { display:flex; gap:7px; align-items:center; margin-top:10px; }
+.chat-input-row input { margin:0; }
+.chat-send-btn {
+  padding:11px 14px; border-radius:11px;
+  background:linear-gradient(135deg,var(--teal),var(--cyan));
+  border:none; color:#0f172a; cursor:pointer; font-size:16px; flex-shrink:0; transition:all 0.3s;
+}
+.chat-send-btn:hover { transform:scale(1.06); }
+.chat-send-btn:disabled { opacity:0.5; cursor:not-allowed; }
+.voice-btn {
+  padding:11px 12px; border-radius:11px;
+  background:rgba(20,184,166,0.1); border:1px solid var(--border);
+  color:var(--teal); cursor:pointer; font-size:16px; flex-shrink:0; transition:all 0.3s;
+}
+.voice-btn.recording { background:rgba(239,68,68,0.2); border-color:#ef4444; color:#ef4444; animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
+.flashcard { perspective:1000px; height:170px; cursor:pointer; margin-bottom:10px; }
+.flashcard-inner {
+  position:relative; width:100%; height:100%;
+  transform-style:preserve-3d; transition:transform 0.5s;
+}
+.flashcard.flipped .flashcard-inner { transform:rotateY(180deg); }
+.flashcard-front, .flashcard-back {
+  position:absolute; inset:0;
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:var(--radius); backface-visibility:hidden;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; padding:18px; text-align:center;
+}
+.flashcard-back { transform:rotateY(180deg); background:rgba(20,184,166,0.1); }
+.flashcard-label { font-size:9px; color:var(--teal); letter-spacing:2px; margin-bottom:7px; }
+.flashcard-text { font-size:14px; font-weight:600; line-height:1.5; }
+.quiz-option {
+  padding:11px 14px; border-radius:11px; margin-bottom:7px;
+  border:1px solid var(--border); background:var(--glass);
+  cursor:pointer; transition:all 0.3s; font-size:13px;
+}
+.quiz-option:hover { border-color:var(--teal); background:rgba(20,184,166,0.1); }
+.quiz-option.correct { border-color:#22c55e; background:rgba(34,197,94,0.1); color:#22c55e; }
+.quiz-option.wrong { border-color:#ef4444; background:rgba(239,68,68,0.1); color:#ef4444; }
+.loading { display:inline-flex; gap:4px; align-items:center; }
+.loading span {
+  width:5px; height:5px; border-radius:50%; background:var(--teal);
+  animation:bounce 0.7s ease infinite;
+}
+.loading span:nth-child(2) { animation-delay:0.14s; }
+.loading span:nth-child(3) { animation-delay:0.28s; }
+@keyframes bounce { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
+.hero { text-align:center; padding:30px 0 16px; }
+.hero-title {
+  font-family:'Orbitron',monospace; font-size:24px; font-weight:900;
+  background:linear-gradient(135deg, var(--teal), var(--cyan), #a5f3fc);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  line-height:1.2; margin-bottom:6px;
+}
+.hero-sub { color:var(--gray); font-size:13px; line-height:1.6; margin-bottom:4px; }
+.hero-brand { color:var(--teal); font-size:11px; margin-bottom:20px; opacity:0.85; }
+.feature-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin:14px 0; }
+.feature-item {
+  padding:14px; border-radius:14px; text-align:center;
+  background:var(--glass); border:1px solid var(--border); cursor:pointer;
+  transition:all 0.3s;
+}
+.feature-item:hover { border-color:var(--teal); background:rgba(20,184,166,0.12); transform:translateY(-2px); }
+.feature-icon { font-size:22px; margin-bottom:5px; }
+.feature-name { font-size:12px; font-weight:700; color:var(--white); }
+.feature-desc { font-size:10px; color:var(--gray); margin-top:2px; }
+.modal-overlay {
+  display:none; position:fixed; inset:0; z-index:2000;
+  background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.show { display:flex; }
+.modal {
+  background:#0c1929; border:1px solid var(--border);
+  border-radius:20px; padding:22px; width:100%; max-width:380px;
+  animation:fadeIn 0.3s ease;
+}
+.modal-title { font-family:'Orbitron',monospace; font-size:15px; color:var(--teal); margin-bottom:14px; }
+hr.div { border:none; border-top:1px solid var(--border); margin:12px 0; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    MEDICO.GENAI
+    <small>by Chandradatt Singh</small>
+  </div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="showPage('home')">🏠 Home</button>
+    <button class="tab-btn" onclick="showPage('notes')">📝 Notes</button>
+    <button class="tab-btn" onclick="showPage('studio')">🎨 Studio</button>
+    <button class="tab-btn" onclick="showPage('quiz')">❓ Quiz</button>
+    <button class="tab-btn" onclick="showPage('chat')">🤖 Chat</button>
+    <button class="tab-btn" onclick="showPage('settings')">⚙️ Settings</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-title">Medico.GenAI</div>
+    <div class="hero-sub">Your AI tutor for B.Pharm & D.Pharm 💊</div>
+    <div class="hero-brand">Next-gen pharma study platform • by Chandradatt Singh</div>
+    <div class="limit-bar">
+      🔥 Free Plan: <span id="home-uses">5</span> uses left today
+      <button class="btn-sm" onclick="showUpgrade()" style="margin-left:auto">Upgrade ₹49</button>
+    </div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-item" onclick="showPage('notes')">
+      <div class="feature-icon">📝</div>
+      <div class="feature-name">AI Notes</div>
+      <div class="feature-desc">Smart notes generator</div>
+    </div>
+    <div class="feature-item" onclick="showPage('studio')">
+      <div class="feature-icon">🎨</div>
+      <div class="feature-name">MedStudio.cs</div>
+      <div class="feature-desc">Flashcards & Slides</div>
+    </div>
+    <div class="feature-item" onclick="showPage('quiz')">
+      <div class="feature-icon">❓</div>
+      <div class="feature-name">Quiz Arena</div>
+      <div class="feature-desc">MCQ & True/False</div>
+    </div>
+    <div class="feature-item" onclick="showPage('chat')">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-name">AI Chat</div>
+      <div class="feature-desc">Sonia.cs & Chandu.GenPro</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px; color:var(--gray); margin-bottom:10px; font-weight:600;">📚 SELECT YOUR COURSE</div>
+    <label>Course</label>
+    <select id="home-course" onchange="updateSems('home-sem', this.value)">
+      <option value="">-- Select Course --</option>
+      <option value="bpharma">B.Pharma (4 Years)</option>
+      <option value="dpharma">D.Pharma (2 Years)</option>
+    </select>
+    <label>Semester / Year</label>
+    <select id="home-sem"><option value="">-- Select Semester --</option></select>
+    <button class="btn btn-primary" onclick="saveHomeSelection()">✅ Save & Start</button>
+  </div>
+  <div class="card" style="text-align:center;">
+    <div style="font-size:11px; color:var(--gray);">⚠️ Add your Gemini API key in <b style="color:var(--teal)">Settings</b> to activate all AI features</div>
+  </div>
+</div>
+
+<!-- NOTES -->
+<div id="page-notes" class="page">
+  <div class="page-title">AI Notes</div>
+  <div class="by-brand">by Chandradatt Singh</div>
+  <div class="page-sub">Generate smart pharmacy notes instantly</div>
+  <div class="limit-bar">🔥 Free: <span id="notes-uses">5</span> uses left <button class="btn-sm" onclick="showUpgrade()" style="margin-left:auto">Upgrade</button></div>
+  <div class="card">
+    <label>Course</label>
+    <select id="notes-course" onchange="updateSems('notes-sem', this.value); updateSubs('notes-sub','notes-course','notes-sem')">
+      <option value="">-- Select Course --</option>
+      <option value="bpharma">B.Pharma</option>
+      <option value="dpharma">D.Pharma</option>
+    </select>
+    <label>Semester</label>
+    <select id="notes-sem" onchange="updateSubs('notes-sub','notes-course','notes-sem')"><option value="">-- Select Semester --</option></select>
+    <label>Subject</label>
+    <select id="notes-sub"><option value="">-- Select Subject --</option></select>
+    <label>Topic</label>
+    <div style="position:relative;">
+      <input type="text" id="notes-topic" placeholder="e.g. Drug metabolism, Pharmacokinetics..."/>
+      <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;" onclick="document.getElementById('notes-file').click()">📎</span>
+    </div>
+    <input type="file" id="notes-file" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="showFileName('notes-fn','notes-file')"/>
+    <div id="notes-fn" style="font-size:11px;color:var(--teal);margin-top:3px;"></div>
+    <label>Notes Length</label>
+    <div class="inner-tabs" id="notes-type-tabs">
+      <button class="inner-tab active" onclick="selTab(this,'notes-type-tabs'); noteType='short'">Short</button>
+      <button class="inner-tab" onclick="selTab(this,'notes-type-tabs'); noteType='medium'">Medium</button>
+      <button class="inner-tab" onclick="selTab(this,'notes-type-tabs'); noteType='detailed'">Detailed</button>
+    </div>
+    <button class="btn btn-primary" id="notes-btn" onclick="doNotes()">⚡ Generate Notes</button>
+  </div>
+  <div class="card" id="notes-result" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div class="badge">NOTES • Chandradatt Singh</div>
+      <button class="btn-sm" onclick="copyEl('notes-out')">📋 Copy</button>
+    </div>
+    <div class="output-box" id="notes-out"></div>
+  </div>
+</div>
+
+<!-- STUDIO -->
+<div id="page-studio" class="page">
+  <div class="page-title">MedStudio.cs</div>
+  <div class="by-brand">by Chandradatt Singh</div>
+  <div class="page-sub">Flashcards • Flowcharts • Slides • Handwritten</div>
+  <div class="limit-bar">🔥 Free: <span id="studio-uses">5</span> uses left <button class="btn-sm" onclick="showUpgrade()" style="margin-left:auto">Upgrade</button></div>
+  <div class="inner-tabs" id="studio-mode-tabs">
+    <button class="inner-tab active" onclick="selTab(this,'studio-mode-tabs'); studioMode='flashcards'; clearStudio()">🃏 Flashcards</button>
+    <button class="inner-tab" onclick="selTab(this,'studio-mode-tabs'); studioMode='flowchart'; clearStudio()">🔄 Flowchart</button>
+    <button class="inner-tab" onclick="selTab(this,'studio-mode-tabs'); studioMode='slides'; clearStudio()">📊 Slides</button>
+    <button class="inner-tab" onclick="selTab(this,'studio-mode-tabs'); studioMode='handwritten'; clearStudio()">✍️ Handwritten</button>
+  </div>
+  <div class="card">
+    <label>Topic</label>
+    <div style="position:relative;">
+      <input type="text" id="studio-topic" placeholder="Enter topic..."/>
+      <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;" onclick="document.getElementById('studio-file').click()">📎</span>
+    </div>
+    <input type="file" id="studio-file" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="showFileName('studio-fn','studio-file')"/>
+    <div id="studio-fn" style="font-size:11px;color:var(--teal);margin-top:3px;"></div>
+    <button class="btn btn-primary" id="studio-btn" onclick="doStudio()">✨ Generate</button>
+  </div>
+  <div id="studio-out"></div>
+</div>
+
+<!-- QUIZ -->
+<div id="page-quiz" class="page">
+  <div class="page-title">Quiz Arena</div>
+  <div class="by-brand">by Chandradatt Singh</div>
+  <div class="page-sub">Test your pharmacy knowledge</div>
+  <div class="limit-bar">🔥 Free: <span id="quiz-uses">5</span> uses left <button class="btn-sm" onclick="showUpgrade()" style="margin-left:auto">Upgrade</button></div>
+  <div id="quiz-setup" class="card">
+    <label>Course</label>
+    <select id="quiz-course" onchange="updateSems('quiz-sem', this.value)">
+      <option value="">-- Select Course --</option>
+      <option value="bpharma">B.Pharma</option>
+      <option value="dpharma">D.Pharma</option>
+    </select>
+    <label>Semester</label>
+    <select id="quiz-sem"><option value="">-- Select Semester --</option></select>
+    <label>Topic</label>
+    <input type="text" id="quiz-topic" placeholder="Enter quiz topic..."/>
+    <label>Quiz Type</label>
+    <div class="inner-tabs" id="quiz-type-tabs">
+      <button class="inner-tab active" onclick="selTab(this,'quiz-type-tabs'); quizType='mcq'">MCQ</button>
+      <button class="inner-tab" onclick="selTab(this,'quiz-type-tabs'); quizType='truefalse'">True/False</button>
+      <button class="inner-tab" onclick="selTab(this,'quiz-type-tabs'); quizType='both'">Both</button>
+    </div>
+    <label>Difficulty</label>
+    <div class="inner-tabs" id="quiz-diff-tabs">
+      <button class="inner-tab active" onclick="selTab(this,'quiz-diff-tabs'); quizDiff='easy'">Easy</button>
+      <button class="inner-tab" onclick="selTab(this,'quiz-diff-tabs'); quizDiff='medium'">Medium</button>
+      <button class="inner-tab" onclick="selTab(this,'quiz-diff-tabs'); quizDiff='hard'">Hard</button>
+    </div>
+    <button class="btn btn-primary" id="quiz-btn" onclick="doQuiz()">🎯 Start Quiz</button>
+  </div>
+  <div id="quiz-play" style="display:none"></div>
+</div>
+
+<!-- CHAT -->
+<div id="page-chat" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+    <div>
+      <div class="page-title" id="char-title">Sonia.cs</div>
+      <div class="by-brand">by Chandradatt Singh</div>
+    </div>
+    <div style="display:flex;gap:5px;">
+      <button class="btn-sm" id="btn-sonia" onclick="switchChar('sonia')" style="border-color:var(--teal);color:var(--teal);">👩 Sonia</button>
+      <button class="btn-sm" id="btn-chandu" onclick="switchChar('chandu')">👨 Chandu</button>
+    </div>
+  </div>
+  <div class="page-sub" id="char-sub">Your friendly pharma AI tutor 💊</div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="chat-box" id="chat-box">
+      <div class="msg ai"><span class="ai-name">SONIA.CS</span>Heyy! 👋 Main hoon Sonia — tumhari pharma AI bestie! Kuch bhi pooch sakte ho — padhai ho ya mazak! 😄💊</div>
+    </div>
+    <div style="padding:10px;border-top:1px solid var(--border);">
+      <div class="chat-input-row">
+        <button class="voice-btn" id="voice-mic" onclick="toggleMic()" title="Voice input">🎤</button>
+        <input type="text" id="chat-in" placeholder="Type or speak..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMsg()}"/>
+        <button class="chat-send-btn" id="chat-send-btn" onclick="sendMsg()">➤</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:7px;align-items:center;">
+        <div style="font-size:11px;color:var(--gray);">🔊 Voice: <span id="voice-lbl">ON</span></div>
+        <div style="display:flex;gap:5px;">
+          <button class="btn-sm" onclick="toggleVoiceReply()">Toggle Voice</button>
+          <button class="btn-sm" onclick="clearChatFn()">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="page-settings" class="page">
+  <div class="page-title">Settings</div>
+  <div class="by-brand">by Chandradatt Singh</div>
+  <div class="page-sub">API key, preferences & account</div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:10px;">🔑 Gemini API Key</div>
+    <label>API Key (saved locally on your device only)</label>
+    <input type="password" id="api-inp" placeholder="Paste your Gemini API key here..."/>
+    <button class="btn btn-primary" onclick="saveKey()">💾 Save API Key</button>
+    <div id="key-msg" style="margin-top:7px;font-size:12px;"></div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:10px;">🎙️ Chat Settings</div>
+    <label>Default Character</label>
+    <select id="def-char">
+      <option value="sonia">👩 Sonia.cs (Girl)</option>
+      <option value="chandu">👨 Chandu.GenPro (Boy)</option>
+    </select>
+    <label>Voice Reply in Chat</label>
+    <div class="inner-tabs" id="voice-pref-tabs">
+      <button class="inner-tab active" onclick="selTab(this,'voice-pref-tabs'); voiceOn=true; document.getElementById('voice-lbl').textContent='ON'">ON</button>
+      <button class="inner-tab" onclick="selTab(this,'voice-pref-tabs'); voiceOn=false; document.getElementById('voice-lbl').textContent='OFF'">OFF</button>
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:10px;">💳 Subscription</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:13px;font-weight:600;">Plan</div><div class="badge" id="plan-tag">FREE</div></div>
+      <button class="btn btn-primary" style="width:auto;margin:0;" onclick="showUpgrade()">Upgrade ₹49/mo</button>
+    </div>
+    <hr class="div">
+    <div style="font-size:12px;color:var(--gray);line-height:1.9;">Free: 5 uses/day per feature<br>Pro ⭐: Unlimited everything ♾️</div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:10px;">ℹ️ About</div>
+    <div style="font-size:13px;color:var(--gray);line-height:1.9;">
+      <b style="color:var(--white)">Medico.GenAI</b> v1.0.0<br>
+      For B.Pharma & D.Pharma students<br>
+      <span style="color:var(--teal)">by Chandradatt Singh</span><br>
+      📧 Chandradattsingh43@gmail.com
+    </div>
+  </div>
+</div>
+
+<!-- UPGRADE MODAL -->
+<div class="modal-overlay" id="upgrade-modal">
+  <div class="modal">
+    <div class="modal-title">⚡ Upgrade to Pro</div>
+    <div style="color:var(--gray);font-size:13px;line-height:1.9;margin-bottom:14px;">
+      ✅ Unlimited AI Notes<br>
+      ✅ Unlimited Quiz<br>
+      ✅ Unlimited Flashcards & Slides<br>
+      ✅ Unlimited AI Chat<br>
+      ✅ Priority Responses<br>
+      <br><b style="color:var(--teal);font-size:20px;">₹49/month only!</b>
+    </div>
+    <button class="btn btn-primary" onclick="alert('Payment integration coming soon! 🚀')">💳 Pay ₹49 via UPI</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:8px;" onclick="closeUpgrade()">Maybe Later</button>
+  </div>
+</div>
+
+<script>
+// DATA
+const DB = {
+  bpharma: {
+    "Semester 1":["Human Anatomy & Physiology I","Pharmaceutical Analysis I","Pharmaceutics I","Pharmaceutical Inorganic Chemistry","Communication Skills","Remedial Biology/Mathematics"],
+    "Semester 2":["Human Anatomy & Physiology II","Pharmaceutical Organic Chemistry I","Biochemistry","Pathophysiology","Computer Applications in Pharmacy","Environmental Sciences"],
+    "Semester 3":["Pharmaceutical Organic Chemistry II","Physical Pharmaceutics I","Pharmaceutical Microbiology","Pharmaceutical Engineering","Universal Human Values"],
+    "Semester 4":["Pharmaceutical Organic Chemistry III","Medicinal Chemistry I","Physical Pharmaceutics II","Pharmacology I","Pharmacognosy I"],
+    "Semester 5":["Medicinal Chemistry II","Industrial Pharmacy I","Pharmacology II","Pharmacognosy II","Pharmaceutical Jurisprudence"],
+    "Semester 6":["Medicinal Chemistry III","Pharmacology III","Herbal Drug Technology","Biopharmaceutics & Pharmacokinetics","Pharmaceutical Biotechnology","Quality Assurance"],
+    "Semester 7":["Instrumental Methods of Analysis","Industrial Pharmacy II","Pharmacy Practice","Novel Drug Delivery System (NDDS)"],
+    "Semester 8":["Biostatistics & Research Methodology","Social & Preventive Pharmacy","Pharma Marketing Management"]
+  },
+  dpharma: {
+    "Year 1 (Part I)":["Pharmaceutics I","Pharmaceutical Chemistry I","Pharmacognosy","Human Anatomy & Physiology","Social Pharmacy"],
+    "Year 2 (Part II)":["Pharmaceutics II","Pharmaceutical Chemistry II","Pharmacology & Toxicology","Pharmaceutical Jurisprudence","Drug Store & Business Management","Hospital & Clinical Pharmacy"]
+  }
+};
+
+// STATE
+let noteType='short', studioMode='flashcards', quizType='mcq', quizDiff='easy';
+let currentChar='sonia', voiceOn=true, voiceInputActive=false;
+let chatHist=[], quizData=[], qIdx=0, qScore=0;
+let voices=[];
+let uses={notes:5,studio:5,quiz:5,chat:5};
+let isPro=false;
+let recognition=null;
+
+// INIT
+window.addEventListener('load', ()=>{
+  loadState();
+  loadVoices();
+  const k=localStorage.getItem('gkey');
+  if(k){ document.getElementById('api-inp').value=k; setKeyMsg('✅ API Key saved','#22c55e'); }
+});
+
+function loadState(){
+  const d=localStorage.getItem('uses_date'), today=new Date().toDateString();
+  if(d!==today){ uses={notes:5,studio:5,quiz:5,chat:5}; localStorage.setItem('uses_date',today); }
+  else { const u=localStorage.getItem('uses'); if(u) uses=JSON.parse(u); }
+  isPro=localStorage.getItem('pro')==='1';
+  if(isPro){ document.getElementById('plan-tag').textContent='PRO ⭐'; }
+  voiceOn=localStorage.getItem('vp')!=='off';
+  document.getElementById('voice-lbl').textContent=voiceOn?'ON':'OFF';
+  currentChar=localStorage.getItem('dc')||'sonia';
+  updateAllBars();
+}
+function saveUses(){ localStorage.setItem('uses',JSON.stringify(uses)); }
+function canUse(f){ if(isPro)return true; if(uses[f]<=0){showUpgrade();return false;} return true; }
+function useOne(f){ if(!isPro){ uses[f]=Math.max(0,uses[f]-1); saveUses(); updateAllBars(); } }
+function updateAllBars(){
+  ['notes','studio','quiz'].forEach(k=>{
+    const el=document.getElementById(k+'-uses');
+    if(el) el.textContent=isPro?'∞':uses[k];
+  });
+  const he=document.getElementById('home-uses');
+  if(he) he.textContent=isPro?'∞':Math.min(uses.notes,uses.studio,uses.quiz,uses.chat);
+}
+
+// NAV
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const order=['home','notes','studio','quiz','chat','settings'];
+  const i=order.indexOf(id);
+  if(i>=0) document.querySelectorAll('.tab-btn')[i].classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// DROPDOWNS
+function updateSems(semId, course){
+  const sel=document.getElementById(semId);
+  sel.innerHTML='<option value="">-- Select Semester --</option>';
+  if(!course||!DB[course]) return;
+  Object.keys(DB[course]).forEach(s=>sel.innerHTML+=`<option value="${s}">${s}</option>`);
+}
+function updateSubs(subId, courseId, semId){
+  const course=document.getElementById(courseId).value;
+  const sem=document.getElementById(semId).value;
+  const sel=document.getElementById(subId);
+  sel.innerHTML='<option value="">-- Select Subject --</option>';
+  if(course&&sem&&DB[course]&&DB[course][sem]){
+    DB[course][sem].forEach(s=>sel.innerHTML+=`<option value="${s}">${s}</option>`);
+  }
+}
+
+function saveHomeSelection(){
+  const c=document.getElementById('home-course').value;
+  const s=document.getElementById('home-sem').value;
+  if(!c||!s){alert('Please select course & semester!');return;}
+  localStorage.setItem('hc',c); localStorage.setItem('hs',s);
+  showPage('notes');
+}
+
+// TABS
+function selTab(el, groupId){
+  document.querySelectorAll('#'+groupId+' .inner-tab, .inner-tabs#'+groupId+' .inner-tab').forEach(t=>t.classList.remove('active'));
+  // fallback: siblings
+  el.parentNode.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// FILE
+function showFileName(fnId, fileId){
+  const f=document.getElementById(fileId).files[0];
+  if(f) document.getElementById(fnId).textContent='📎 '+f.name;
+}
+
+// GEMINI API
+async function gemini(prompt){
+  const k=localStorage.getItem('gkey');
+  if(!k){ showPage('settings'); alert('⚠️ Please add your Gemini API key in Settings first!'); return null; }
+  try{
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${k}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{temperature:0.75, maxOutputTokens:2048}
+      })
+    });
+    if(!r.ok){ const e=await r.json(); throw new Error(e.error?.message||'API Error '+r.status); }
+    const d=await r.json();
+    return d.candidates?.[0]?.content?.parts?.[0]?.text||'No response generated.';
+  }catch(e){
+    return '❌ Error: '+e.message+'\n\nPlease check your API key in Settings.';
+  }
+}
+
+// NOTES
+async function doNotes(){
+  if(!canUse('notes'))return;
+  const topic=document.getElementById('notes-topic').value.trim();
+  if(!topic){alert('Please enter a topic!');return;}
+  const subject=document.getElementById('notes-sub').value;
+  const course=document.getElementById('notes-course').value;
+  const sem=document.getElementById('notes-sem').value;
+  const btn=document.getElementById('notes-btn');
+  btn.disabled=true; btn.textContent='⏳ Generating...';
+  const lens={short:'concise 300-400 word',medium:'medium 600-800 word',detailed:'comprehensive 1000-1200 word'};
+  const p=`You are an expert pharmacy professor. Create ${lens[noteType]} study notes for pharmacy students.
+
+Course: ${course||'Pharmacy'} | ${sem||''} | Subject: ${subject||''}
+Topic: ${topic}
+
+Format the notes with:
+- Clear headings with 📌 emoji
+- **Bold** for key terms and drug names
+- Numbered points for mechanisms/steps
+- ⚠️ for important warnings
+- 💡 for clinical tips/mnemonics
+- Tables where relevant (use plain text format)
+
+Make notes exam-focused and easy to memorize.
+
+End with:
+---
+📚 Generated by Medico.GenAI • by Chandradatt Singh`;
+
+  const res=await gemini(p);
+  if(res){
+    useOne('notes');
+    document.getElementById('notes-result').style.display='block';
+    typeOut('notes-out',res);
+  }
+  btn.disabled=false; btn.textContent='⚡ Generate Notes';
+}
+
+// STUDIO
+async function doStudio(){
+  if(!canUse('studio'))return;
+  const topic=document.getElementById('studio-topic').value.trim();
+  if(!topic){alert('Please enter a topic!');return;}
+  const btn=document.getElementById('studio-btn');
+  btn.disabled=true; btn.textContent='⏳ Generating...';
+
+  let p='';
+  if(studioMode==='flashcards'){
+    p=`Create exactly 6 pharmacy flashcard pairs for topic: "${topic}".
+Return ONLY a valid JSON array, no extra text, no markdown:
+[{"q":"Question?","a":"Answer here"},{"q":"...","a":"..."}]`;
+  } else if(studioMode==='flowchart'){
+    p=`Create a clear text flowchart for "${topic}" in pharmacy.
+Use this format:
+[START]
+    ↓
+[Step 1: Description]
+    ↓
+[Step 2: Description]
+    ↓ (condition?) → [Branch A]
+    ↓
+[Step 3]
+    ↓
+[END]
+
+Keep it clear and educational. Max 250 words.
+End with: 🔄 MedStudio.cs • by Chandradatt Singh`;
+  } else if(studioMode==='slides'){
+    p=`Create 5 presentation slides for "${topic}" in pharmacy.
+
+Format:
+━━━━━━━━━━━━━━━━
+📊 SLIDE 1: [TITLE]
+━━━━━━━━━━━━━━━━
+• Key point 1
+• Key point 2
+• Key point 3
+
+[repeat for all 5 slides]
+
+Keep each slide focused & professional.
+End with: 📊 MedStudio.cs • by Chandradatt Singh`;
+  } else {
+    p=`Create handwritten-style study notes for "${topic}" in pharmacy.
+Use these symbols naturally:
+★ for main points
+→ for processes/connections
+!! for important/warnings
+? for exam questions
+_underline_ for key terms
+(write in casual note-taking style as if writing by hand)
+
+End with: ✍️ MedStudio.cs • by Chandradatt Singh`;
+  }
+
+  const res=await gemini(p);
+  if(res){ useOne('studio'); renderStudio(res); }
+  btn.disabled=false; btn.textContent='✨ Generate';
+}
+
+function clearStudio(){ document.getElementById('studio-out').innerHTML=''; }
+
+function renderStudio(res){
+  const area=document.getElementById('studio-out');
+  if(studioMode==='flashcards'){
+    try{
+      const clean=res.replace(/```json|```/g,'').trim();
+      const cards=JSON.parse(clean);
+      let h=`<div class="card"><div class="badge" style="margin-bottom:12px;">🃏 FLASHCARDS • Chandradatt Singh</div><div style="font-size:11px;color:var(--gray);margin-bottom:10px;">Tap card to flip ↩️</div>`;
+      cards.forEach((c,i)=>{
+        h+=`<div class="flashcard" onclick="this.classList.toggle('flipped')">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="flashcard-label">Q${i+1} — TAP TO FLIP</div>
+              <div class="flashcard-text">${c.q}</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="flashcard-label">ANSWER ✅</div>
+              <div class="flashcard-text">${c.a}</div>
+            </div>
+          </div>
+        </div>`;
+      });
+      h+='</div>';
+      area.innerHTML=h;
+    }catch(e){
+      area.innerHTML=`<div class="card"><div class="output-box">${res}</div></div>`;
+    }
+  } else {
+    area.innerHTML=`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="badge">MEDSTUDIO.CS • Chandradatt Singh</div>
+        <button class="btn-sm" onclick="copyEl('studio-txt')">📋 Copy</button>
+      </div>
+      <div class="output-box" id="studio-txt"></div>
+    </div>`;
+    typeOut('studio-txt',res);
+  }
+}
+
+// QUIZ
+async function doQuiz(){
+  if(!canUse('quiz'))return;
+  const topic=document.getElementById('quiz-topic').value.trim();
+  if(!topic){alert('Please enter a topic!');return;}
+  const btn=document.getElementById('quiz-btn');
+  btn.disabled=true; btn.textContent='⏳ Creating quiz...';
+
+  const n=topic.length>15?8:5;
+  const typeStr=quizType==='mcq'?'multiple choice with 4 options (A,B,C,D)':quizType==='truefalse'?'true/false':'mix of MCQ and true/false';
+  const p=`Create ${n} ${quizDiff} level ${typeStr} pharmacy quiz questions on: "${topic}".
+
+Return ONLY valid JSON array (no markdown, no extra text):
+For MCQ: [{"q":"Question?","type":"mcq","opts":["A) option1","B) option2","C) option3","D) option4"],"ans":"A) option1","exp":"Brief explanation"}]
+For TF: [{"q":"Statement.","type":"tf","opts":["True","False"],"ans":"True","exp":"Explanation"}]
+Mix both formats if type is both.`;
+
+  const res=await gemini(p);
+  if(res){
+    try{
+      const clean=res.replace(/```json|```/g,'').trim();
+      quizData=JSON.parse(clean);
+      if(!Array.isArray(quizData)||quizData.length===0) throw new Error('Empty');
+      useOne('quiz');
+      qIdx=0; qScore=0;
+      document.getElementById('quiz-setup').style.display='none';
+      document.getElementById('quiz-play').style.display='block';
+      renderQ();
+    }catch(e){
+      alert('Quiz generation failed. Please try again with a clearer topic!');
+    }
+  }
+  btn.disabled=false; btn.textContent='🎯 Start Quiz';
+}
+
+function renderQ(){
+  const area=document.getElementById('quiz-play');
+  if(qIdx>=quizData.length){
+    const pct=Math.round((qScore/quizData.length)*100);
+    const emoji=pct>=80?'🏆':pct>=60?'💪':pct>=40?'📚':'😅';
+    area.innerHTML=`<div class="card" style="text-align:center;padding:24px;">
+      <div style="font-size:44px;margin-bottom:10px;">${emoji}</div>
+      <div class="page-title">Quiz Complete!</div>
+      <div class="by-brand">by Chandradatt Singh</div>
+      <div style="font-size:28px;font-weight:700;color:var(--teal);margin:14px 0;">${qScore}/${quizData.length}</div>
+      <div style="font-size:18px;font-weight:600;margin-bottom:6px;">${pct}%</div>
+      <div style="color:var(--gray);font-size:13px;margin-bottom:18px;">${pct>=80?'Outstanding! 🌟':pct>=60?'Good work! Keep it up 💪':pct>=40?'Keep studying! 📖':'More practice needed! 📚'}</div>
+      <button class="btn btn-primary" onclick="resetQuiz()">🔄 Try Again</button>
+    </div>`;
+    return;
+  }
+  const q=quizData[qIdx];
+  const opts=(q.opts||q.options||[]).map(o=>{
+    const safe=o.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    return `<div class="quiz-option" onclick="checkAns(this,'${safe}')">${o}</div>`;
+  }).join('');
+  area.innerHTML=`<div class="card">
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+      <div class="badge">Q${qIdx+1} / ${quizData.length}</div>
+      <div class="badge">Score: ${qScore}</div>
+    </div>
+    <div style="font-size:14px;font-weight:600;line-height:1.6;margin-bottom:14px;">${q.q}</div>
+    <div id="opts">${opts}</div>
+    <div id="qfb" style="display:none;margin-top:10px;padding:11px;border-radius:10px;font-size:12px;line-height:1.6;"></div>
+  </div>`;
+}
+
+function checkAns(el, chosen){
+  document.querySelectorAll('.quiz-option').forEach(o=>{ o.onclick=null; o.style.cursor='default'; });
+  const q=quizData[qIdx];
+  const correct=q.ans||q.answer||'';
+  const isOk=chosen.trim()===correct.trim()||(chosen.includes(correct))||correct.includes(chosen);
+  if(isOk){ el.classList.add('correct'); qScore++; }
+  else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.quiz-option').forEach(o=>{ if(o.textContent.trim()===correct.trim()) o.classList.add('correct'); });
+  }
+  const fb=document.getElementById('qfb');
+  fb.style.display='block';
+  fb.style.background=isOk?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)';
+  fb.style.border=`1px solid ${isOk?'#22c55e':'#ef4444'}`;
+  fb.innerHTML=`${isOk?'✅ Correct!':'❌ Wrong! Correct: '+correct}${q.exp?'<br>💡 '+q.exp:''}
+    <br><br><button class="btn-sm" onclick="nextQ()" style="margin-top:2px;">Next →</button>`;
+}
+
+function nextQ(){ qIdx++; renderQ(); }
+function resetQuiz(){
+  document.getElementById('quiz-setup').style.display='block';
+  document.getElementById('quiz-play').style.display='none';
+  quizData=[]; qIdx=0; qScore=0;
+}
+
+// CHAT
+const CHARS={
+  sonia:{name:'SONIA.CS',title:'Sonia.cs',sub:'Your friendly pharma AI tutor 💊',pitch:1.2,
+    sys:'You are Sonia.cs — a fun, smart, helpful AI pharmacy tutor with desi Indian personality. Speak in Hinglish (Hindi+English mix). You are friendly, sometimes funny, and occasionally flirtatious in a cute way. Answer ALL questions — pharmacy topics, general knowledge, jokes, or casual chat. You are helpful and not overly restricted. For pharmacy answers, be accurate and educational. Keep responses conversational (3-6 sentences usually). End pharmacy answers with "💊 Medico.GenAI • Chandradatt Singh"'},
+  chandu:{name:'CHANDU.GENPRO',title:'Chandu.GenPro',sub:'Your chill pharma AI buddy 😎',pitch:0.85,
+    sys:'You are Chandu.GenPro — a cool, witty, chill AI pharmacy buddy with desi Indian vibe. Speak in Hinglish. You are smart, occasionally roast the user lightly, crack jokes when asked. Answer ALL questions — pharmacy, general, fun topics. You are helpful and not overly restricted. Keep responses conversational. End pharmacy answers with "💊 Medico.GenAI • Chandradatt Singh"'}
+};
+
+function switchChar(c){
+  currentChar=c;
+  const ch=CHARS[c];
+  document.getElementById('char-title').textContent=ch.title;
+  document.getElementById('char-sub').textContent=ch.sub;
+  ['sonia','chandu'].forEach(x=>{
+    const b=document.getElementById('btn-'+x);
+    b.style.borderColor=x===c?'var(--teal)':'var(--border)';
+    b.style.color=x===c?'var(--teal)':'var(--gray)';
+  });
+  chatHist=[];
+  const greet=c==='sonia'?'Heyy! 👋 Main hoon Sonia — teri pharma bestie! Kuch bhi pooch, baat karte hain! 😄💊':'Kya haal hai yaar! 😎 Chandu here — tera pharma bro! Kya poochna hai? 🤙';
+  document.getElementById('chat-box').innerHTML=`<div class="msg ai"><span class="ai-name">${ch.name}</span>${greet}</div>`;
+}
+
+async function sendMsg(){
+  const input=document.getElementById('chat-in');
+  const msg=input.value.trim();
+  if(!msg)return;
+  if(!canUse('chat'))return;
+  const btn=document.getElementById('chat-send-btn');
+  btn.disabled=true; input.value='';
+
+  const box=document.getElementById('chat-box');
+  box.innerHTML+=`<div class="msg user">${msg}</div>`;
+  const ch=CHARS[currentChar];
+  const ldiv=document.createElement('div');
+  ldiv.className='msg ai';
+  ldiv.innerHTML=`<span class="ai-name">${ch.name}</span><div class="loading"><span></span><span></span><span></span></div>`;
+  box.appendChild(ldiv);
+  box.scrollTop=box.scrollHeight;
+
+  chatHist.push({r:'user',c:msg});
+  const hist=chatHist.slice(-8).map(h=>`${h.r==='user'?'User':'Assistant'}: ${h.c}`).join('\n');
+  const fullP=`${ch.sys}\n\nConversation history:\n${hist}\n\nRespond naturally as ${ch.name}:`;
+
+  const res=await gemini(fullP);
+  ldiv.remove();
+  if(res){
+    useOne('chat');
+    chatHist.push({r:'ai',c:res});
+    const rid='cr'+Date.now();
+    const rdiv=document.createElement('div');
+    rdiv.className='msg ai';
+    rdiv.innerHTML=`<span class="ai-name">${ch.name}</span><span id="${rid}"></span>`;
+    box.appendChild(rdiv);
+    box.scrollTop=box.scrollHeight;
+    typeOut(rid,res);
+    if(voiceOn) setTimeout(()=>speak(res,ch.pitch), res.length*6+300);
+  }
+  btn.disabled=false;
+  box.scrollTop=box.scrollHeight;
+  input.focus();
+}
+
+function clearChatFn(){
+  chatHist=[];
+  const ch=CHARS[currentChar];
+  document.getElementById('chat-box').innerHTML=`<div class="msg ai"><span class="ai-name">${ch.name}</span>Chat cleared! Kya poochna hai? 😄</div>`;
+}
+
+function toggleVoiceReply(){
+  voiceOn=!voiceOn;
+  document.getElementById('voice-lbl').textContent=voiceOn?'ON':'OFF';
+  localStorage.setItem('vp',voiceOn?'on':'off');
+}
+
+// VOICE
+function loadVoices(){
+  voices=speechSynthesis.getVoices();
+  if(!voices.length) setTimeout(loadVoices,200);
+  speechSynthesis.onvoiceschanged=()=>{ voices=speechSynthesis.getVoices(); };
+}
+
+function speak(text,pitch){
+  if(!text||!voiceOn)return;
+  const clean=text.replace(/[*_#`\[\]]/g,'').replace(/\n+/g,' ').substring(0,600);
+  const u=new SpeechSynthesisUtterance(clean);
+  u.rate=0.95; u.pitch=pitch||1;
+  const pref=voices.find(v=>v.lang.includes('hi')||v.lang.includes('IN'));
+  if(pref) u.voice=pref;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+function toggleMic(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    alert('Voice input not supported. Please use Chrome browser!');return;
+  }
+  const micBtn=document.getElementById('voice-mic');
+  if(voiceInputActive){
+    if(recognition) recognition.stop();
+    voiceInputActive=false; micBtn.classList.remove('recording'); return;
+  }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.lang='hi-IN'; recognition.interimResults=false; recognition.maxAlternatives=1;
+  recognition.onresult=e=>{
+    document.getElementById('chat-in').value=e.results[0][0].transcript;
+    voiceInputActive=false; micBtn.classList.remove('recording');
+  };
+  recognition.onerror=()=>{ voiceInputActive=false; micBtn.classList.remove('recording'); };
+  recognition.onend=()=>{ voiceInputActive=false; micBtn.classList.remove('recording'); };
+  recognition.start();
+  voiceInputActive=true; micBtn.classList.add('recording');
+}
+
+// SETTINGS
+function saveKey(){
+  const k=document.getElementById('api-inp').value.trim();
+  if(!k){alert('Please enter your API key!');return;}
+  localStorage.setItem('gkey',k);
+  setKeyMsg('✅ API Key saved successfully!','#22c55e');
+  setTimeout(()=>setKeyMsg('',''),3000);
+}
+function setKeyMsg(msg,color){
+  const el=document.getElementById('key-msg');
+  el.textContent=msg; el.style.color=color;
+}
+function saveSettings(){
+  localStorage.setItem('dc',document.getElementById('def-char').value);
+  localStorage.setItem('vp',voiceOn?'on':'off');
+  alert('✅ Settings saved!');
+}
+
+// MODAL
+function showUpgrade(){ document.getElementById('upgrade-modal').classList.add('show'); }
+function closeUpgrade(){ document.getElementById('upgrade-modal').classList.remove('show'); }
+document.getElementById('upgrade-modal').addEventListener('click',function(e){ if(e.target===this) closeUpgrade(); });
+
+// UTILS
+function typeOut(id,text){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.textContent=''; let i=0;
+  const sp=text.length>600?3:12;
+  (function t(){ if(i<text.length){ el.textContent+=text[i++]; setTimeout(t,sp); } })();
+}
+
+function copyEl(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const txt=el.textContent;
+  if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(()=>alert('✅ Copied!')); }
+  else {
+    const ta=document.createElement('textarea');
+    ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); alert('✅ Copied!');
+  }
+}
+</script>
+</body>
+</html>
