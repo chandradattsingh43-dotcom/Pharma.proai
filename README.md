@@ -461,7 +461,7 @@ hr.div { border:none; border-top:1px solid var(--border); margin:12px 0; }
     <div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:10px;">🎙️ Chat Settings</div>
     <label>Default Character</label>
     <select id="def-char">
-      <option value="sonia">👩 Sonia.cs (Girl)</option>
+      <option value="sonia">👩 Sonia.ZEN (Girl)</option>
       <option value="chandu">👨 Chandu.GenPro (Boy)</option>
     </select>
     <label>Voice Reply in Chat</label>
